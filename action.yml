@@ -1,0 +1,37 @@
+inputs:
+  version:
+    description: "A version to install exsheetah"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Set exsheetah version
+      id: set-exsheetah-version
+      run: |
+        VERSION=${{ inputs.version }}
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+      shell: bash
+    - name: Set file name
+      id: set-filename
+      run: |
+        case "${{ runner.os }}" in
+          Linux) BIN_OS="linux" ;;
+          macOS) BIN_OS="darwin" ;;
+          *) BIN_OS="linux" ;;
+        esac
+
+        case "${{ runner.arch }}" in
+          X64) BIN_ARCH="amd64" ;;
+          ARM64) BIN_ARCH="arm64" ;;
+          *) BIN_ARCH="amd64" ;;
+        esac
+
+        FILENAME=exsheetah_${{ steps.set-exsheetah-version.outputs.VERSION }}_${BIN_OS}_${BIN_ARCH}.tar.gz
+        echo "FILENAME=$FILENAME" >> $GITHUB_OUTPUT
+      shell: bash
+    - run: |
+        mkdir -p /tmp/exsheetah-${{ steps.set-exsheetah-version.outputs.VERSION }}
+        cd /tmp/exsheetah-${{ steps.set-exsheetah-version.outputs.VERSION }}
+        curl -sL https://github.com/nukokusa/exsheetah/releases/download/v${{ steps.set-exsheetah-version.outputs.VERSION }}/${{ steps.set-filename.outputs.FILENAME }} | tar zxvf -
+        sudo install exsheetah /usr/local/bin
+      shell: bash
