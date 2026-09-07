@@ -1,0 +1,8 @@
+version: "3"
+tasks:
+  test:
+    cmds:
+      - go test -v ./...
+  install:
+    cmds:
+      - go install github.com/nukokusa/exsheetah/cmd/exsheetah

@@ -2,10 +2,6 @@
 
 exsheetah is a tool for exporting data from local xlsx files to YAML or JSON files.
 
-It is a sibling of [sheetah](https://github.com/nukokusa/sheetah): where sheetah
-reads sheets from Google Sheets, exsheetah reads sheets from an xlsx file on
-disk. The configuration format is otherwise the same.
-
 ## Usage
 
 ```
@@ -56,6 +52,7 @@ timezone: Asia/Tokyo
 sheets:
   - name: weapon
     range: A1:D10
+    id_column: id
     columns:
       - name: id
         type: number
@@ -65,6 +62,7 @@ sheets:
         type: number
       - name: release_date
         type: timestamp
+        format: "2006-01-02"
   - name: item
     columns:
       - name: id
@@ -87,6 +85,15 @@ sheets:
 - `columns` describes the header row: the first row within the read range
   that contains one of these column names is treated as the header, rows
   before it are skipped, and rows after it become data rows.
+- `id_column` optionally names one of `columns` as the row's identifier (at
+  most one per sheet). A row whose `id_column` value is the zero value for
+  its type (`0`, `""`, `false`, a zero timestamp, or a missing/unparseable
+  value) is excluded from the output. Must match one of `columns`' `name`s.
+  When set, output rows are sorted in ascending order by this column's value.
+- `format` optionally specifies a Go reference-time layout (e.g.
+  `2006-01-02`, or `time.RFC3339`'s layout) used to render a `timestamp`
+  column's value in the output. Only valid when `type` is `timestamp`;
+  defaults to an RFC 3339 string when omitted.
 
 The `type` specifies the data type of the column. The following types can be
 used:
@@ -105,11 +112,16 @@ setting). exsheetah interprets them using the configuration file's
 `timezone` field (default `UTC`), and outputs them as RFC 3339 strings.
 
 A `timestamp` column also accepts a plain text cell containing a date/time
-string, parsed the same way as sheetah.
+string (e.g. `2024-01-02 15:04:05`, or just `2024-01-02`), parsed against a
+handful of common layouts.
+
+By default, a `timestamp` column is output as an RFC 3339 string (e.g.
+`2024-01-02T00:00:00+09:00`). Set the column's `format` to a Go reference-time
+layout (e.g. `2006-01-02`) to render it differently instead.
 
 ## Author
 
-Copyright (c) 2025 Daisuke Nagashima
+Copyright (c) 2026 Daisuke Nagashima
 
 ## LICENSE
 

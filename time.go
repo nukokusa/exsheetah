@@ -39,6 +39,10 @@ func ParseTimeByString(str string, loc *time.Location) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("failed to parse time: %s", str)
 }
 
+// TimeFromExcelSerial converts an xlsx serial date/time number into a
+// time.Time. The result's wall-clock components (year, month, day, hour,
+// minute, second) are preserved as-is and simply re-anchored to loc, since
+// xlsx serial numbers carry no timezone information of their own.
 func TimeFromExcelSerial(serial float64, date1904 bool, loc *time.Location) (time.Time, error) {
 	t, err := excelize.ExcelDateToTime(serial, date1904)
 	if err != nil {

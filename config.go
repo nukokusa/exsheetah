@@ -39,8 +39,11 @@ func LoadConfig(path string) (*Config, error) {
 }
 
 type Config struct {
-	Sheets   []*SheetConfig `yaml:"sheets"`
+	// Timezone is the IANA timezone name (e.g. "Asia/Tokyo") used to
+	// interpret date/time cell values, since xlsx stores them with no
+	// timezone of their own. Defaults to UTC when omitted.
 	Timezone string         `yaml:"timezone,omitempty"`
+	Sheets   []*SheetConfig `yaml:"sheets"`
 }
 
 func (c *Config) Validate() error {
@@ -59,6 +62,8 @@ func (c *Config) Validate() error {
 	return nil
 }
 
+// Location returns the time.Location described by Timezone, defaulting to
+// UTC when Timezone is empty.
 func (c *Config) Location() (*time.Location, error) {
 	if c.Timezone == "" {
 		return time.UTC, nil
@@ -66,6 +71,10 @@ func (c *Config) Location() (*time.Location, error) {
 	return time.LoadLocation(c.Timezone)
 }
 
+// FilterSheets returns the configured sheets whose Name is in names, kept
+// in the configuration file's original order. When names is empty, every
+// configured sheet is returned. It is an error for names to contain a name
+// that does not match any configured sheet.
 func (c *Config) FilterSheets(names []string) ([]*SheetConfig, error) {
 	if len(names) == 0 {
 		return c.Sheets, nil
@@ -97,10 +106,21 @@ func (c *Config) FilterSheets(names []string) ([]*SheetConfig, error) {
 }
 
 type SheetConfig struct {
-	Name    string          `yaml:"name"`
-	Sheet   string          `yaml:"sheet,omitempty"`
+	// Name is both the configuration entry name and, unless Sheet is set,
+	// the name of the worksheet inside the xlsx file to read from.
+	Name string `yaml:"name"`
+	// Sheet optionally overrides the worksheet name to read from, in case
+	// it should differ from Name.
+	Sheet string `yaml:"sheet,omitempty"`
+	// Range is an A1-style cell range (e.g. "A1:D10") restricting which
+	// cells are read. When empty, the sheet's whole used range is read.
 	Range   string          `yaml:"range,omitempty"`
 	Columns []*ColumnConfig `yaml:"columns"`
+	// IDColumn optionally names one of Columns whose value identifies the
+	// row. When set, a row whose IDColumn value is the zero value for its
+	// column type (0, "", false, a zero time, or the value is missing or
+	// doesn't match the column type) is excluded from the output.
+	IDColumn string `yaml:"id_column,omitempty"`
 }
 
 var a1Regex = regexp.MustCompile(`^([A-Z]+[0-9]+)(:[A-Z]+[0-9]+)?$`)
@@ -122,10 +142,23 @@ func (sc *SheetConfig) Validate() error {
 			return err
 		}
 	}
+	if sc.IDColumn != "" {
+		found := false
+		for _, cc := range sc.Columns {
+			if cc.Name == sc.IDColumn {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("id_column not found in columns: %s", sc.IDColumn)
+		}
+	}
 
 	return nil
 }
 
+// SheetName returns the name of the worksheet to read from the xlsx file.
 func (sc *SheetConfig) SheetName() string {
 	if sc.Sheet != "" {
 		return sc.Sheet
@@ -136,6 +169,11 @@ func (sc *SheetConfig) SheetName() string {
 type ColumnConfig struct {
 	Name string     `yaml:"name"`
 	Type ColumnType `yaml:"type"`
+	// Format is a Go reference-time layout (e.g. "2006-01-02" or
+	// time.RFC3339) used to render a timestamp column's value in the
+	// output. Only valid when Type is "timestamp"; when omitted, the
+	// value is output as a plain RFC 3339 timestamp.
+	Format string `yaml:"format,omitempty"`
 }
 
 func (cc *ColumnConfig) Validate() error {
@@ -147,6 +185,9 @@ func (cc *ColumnConfig) Validate() error {
 	}
 	if err := cc.Type.Validate(); err != nil {
 		return err
+	}
+	if cc.Format != "" && cc.Type != ColumnTypeTimestamp {
+		return fmt.Errorf("format is only valid for timestamp columns: %s", cc.Name)
 	}
 
 	return nil

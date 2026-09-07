@@ -9,6 +9,11 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+// buildTestXLSX creates a small xlsx file with a title row (skipped), a
+// header row, and data rows exercising strings, integers, floats,
+// booleans, a built-in date format, and a custom date format. It also adds
+// a percent-formatted number to make sure percent formatting is not
+// mistaken for a date.
 func buildTestXLSX(t *testing.T) string {
 	t.Helper()
 
@@ -144,6 +149,8 @@ func TestReader_ReadSheets(t *testing.T) {
 	if got, ok := row0["updated_at"].(time.Time); !ok || !got.Equal(wantUpdatedAt) {
 		t.Errorf("updated_at = %v, want %v", row0["updated_at"], wantUpdatedAt)
 	}
+	// A percent-formatted number must be read as a plain number, not
+	// mistaken for a date.
 	if got := row0["discount"]; got != float64(0.3) {
 		t.Errorf("discount = %v, want 0.3", got)
 	}
@@ -206,6 +213,9 @@ func TestReader_Range(t *testing.T) {
 	}
 	defer r.Close()
 
+	// Restrict the range to columns A-D so that only id/name/price/in_stock
+	// are visible; the header detection should still find row 2 within
+	// the restricted range.
 	config := &exsheetah.SheetConfig{
 		Name:  "item",
 		Range: "A2:D4",

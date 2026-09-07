@@ -141,3 +141,101 @@ sheets:
 		}
 	})
 }
+
+func TestSheetConfig_IDColumn_Validate(t *testing.T) {
+	t.Parallel()
+
+	t.Run("id_column matching a column is valid", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    id_column: id
+    columns:
+      - name: id
+        type: number
+      - name: name
+        type: string
+`)
+		if _, err := exsheetah.LoadConfig(path); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("id_column not matching any column is an error", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    id_column: does-not-exist
+    columns:
+      - name: id
+        type: number
+`)
+		if _, err := exsheetah.LoadConfig(path); err == nil {
+			t.Fatal("expected an error for an id_column that isn't in columns")
+		}
+	})
+
+	t.Run("id_column is optional", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    columns:
+      - name: id
+        type: number
+`)
+		if _, err := exsheetah.LoadConfig(path); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+func TestColumnConfig_Format_Validate(t *testing.T) {
+	t.Parallel()
+
+	t.Run("format on a timestamp column is valid", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    columns:
+      - name: released_at
+        type: timestamp
+        format: "2006-01-02"
+`)
+		if _, err := exsheetah.LoadConfig(path); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("format on a non-timestamp column is an error", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    columns:
+      - name: name
+        type: string
+        format: "2006-01-02"
+`)
+		if _, err := exsheetah.LoadConfig(path); err == nil {
+			t.Fatal("expected an error for format on a non-timestamp column")
+		}
+	})
+
+	t.Run("format is optional", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    columns:
+      - name: released_at
+        type: timestamp
+`)
+		if _, err := exsheetah.LoadConfig(path); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
