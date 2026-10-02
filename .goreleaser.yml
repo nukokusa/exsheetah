@@ -13,10 +13,14 @@ builds:
     goos:
       - linux
       - darwin
+      - windows
     goarch:
       - amd64
       - arm64
 archives:
+  - format_overrides:
+      - goos: windows
+        formats: [zip]
 release:
   use_existing_draft: true
 checksum:
