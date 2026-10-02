@@ -9,7 +9,6 @@ require (
 	github.com/samber/lo v1.53.0
 	github.com/xuri/excelize/v2 v2.11.0
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9
-	golang.org/x/sys v0.47.0
 )
 
 require (

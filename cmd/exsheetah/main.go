@@ -5,16 +5,16 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/nukokusa/exsheetah"
-	"golang.org/x/sys/unix"
 )
 
-var version = "current"
+var Version = "current"
 
 func main() {
-	exsheetah.Version = version
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, unix.SIGTERM)
+	exsheetah.Version = Version
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	if err := run(ctx); err != nil {
 		slog.Error("error", "err", err)
