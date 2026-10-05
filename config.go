@@ -121,6 +121,10 @@ type SheetConfig struct {
 	// column type (0, "", false, a zero time, or the value is missing or
 	// doesn't match the column type) is excluded from the output.
 	IDColumn string `yaml:"id_column,omitempty"`
+	// DisableSort disables sorting output rows by IDColumn, keeping them in
+	// the order they appear in the sheet. It has no effect when IDColumn
+	// is not set (rows are never sorted then).
+	DisableSort bool `yaml:"disable_sort,omitempty"`
 }
 
 var a1Regex = regexp.MustCompile(`^([A-Z]+[0-9]+)(:[A-Z]+[0-9]+)?$`)
