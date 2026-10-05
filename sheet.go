@@ -137,8 +137,8 @@ func (s Sheet) marshal() []map[string]any {
 	}
 
 	// When an id_column is configured, output rows sorted ascending by its
-	// (raw, pre-Format) value.
-	if s.Config.IDColumn != "" {
+	// (raw, pre-Format) value, unless disable_sort is set.
+	if s.Config.IDColumn != "" && !s.Config.DisableSort {
 		sort.SliceStable(rows, func(i, j int) bool {
 			return compareValues(rows[i].id, rows[j].id) < 0
 		})

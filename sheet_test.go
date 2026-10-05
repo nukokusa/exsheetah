@@ -363,3 +363,49 @@ func TestSheet_NoIDColumn_KeepsAllRows(t *testing.T) {
 		t.Fatalf("expected 2 rows (no filtering without id_column), got %d: %v", len(rows), rows)
 	}
 }
+
+func TestSheet_IDColumn_DisableSort_KeepsSheetOrder(t *testing.T) {
+	t.Parallel()
+
+	config := &exsheetah.SheetConfig{
+		Name:        "item",
+		IDColumn:    "id",
+		DisableSort: true,
+		Columns: []*exsheetah.ColumnConfig{
+			{Name: "id", Type: exsheetah.ColumnTypeNumber},
+			{Name: "name", Type: exsheetah.ColumnTypeString},
+		},
+	}
+
+	grid := [][]any{
+		{"id", "name"},
+		{float64(3), "Charm"},
+		{float64(1), "Potion"},
+		{float64(0), "Ignored"}, // zero-value rows are still excluded
+		{float64(2), "Hi-Potion"},
+	}
+
+	sheet, err := exsheetah.NewSheet(config, grid, time.UTC)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := sheet.MarshalJSON()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rows []map[string]any
+	if err := json.Unmarshal(b, &rows); err != nil {
+		t.Fatal(err)
+	}
+
+	wantOrder := []string{"Charm", "Potion", "Hi-Potion"}
+	if len(rows) != len(wantOrder) {
+		t.Fatalf("expected %d rows, got %d: %v", len(wantOrder), len(rows), rows)
+	}
+	for i, want := range wantOrder {
+		if rows[i]["name"] != want {
+			t.Errorf("row %d: name = %v, want %s", i, rows[i]["name"], want)
+		}
+	}
+}

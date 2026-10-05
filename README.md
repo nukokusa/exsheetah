@@ -90,6 +90,9 @@ sheets:
   its type (`0`, `""`, `false`, a zero timestamp, or a missing/unparseable
   value) is excluded from the output. Must match one of `columns`' `name`s.
   When set, output rows are sorted in ascending order by this column's value.
+- `disable_sort` optionally disables the sorting by `id_column`, so output rows
+  keep the order they appear in the sheet (zero-value rows are still
+  excluded). Defaults to `false`.
 - `format` optionally specifies a Go reference-time layout (e.g.
   `2006-01-02`, or `time.RFC3339`'s layout) used to render a `timestamp`
   column's value in the output. Only valid when `type` is `timestamp`;
