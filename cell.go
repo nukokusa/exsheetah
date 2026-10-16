@@ -81,7 +81,13 @@ func (c BoolCell) Value(typ ColumnType) any {
 
 type NilCell struct{}
 
+// Value returns "" for a string column, so that an empty cell is still
+// output as an empty string; for every other type it returns nil, and the
+// column is omitted from the row.
 func (c NilCell) Value(typ ColumnType) any {
+	if typ == ColumnTypeString {
+		return ""
+	}
 	return nil
 }
 

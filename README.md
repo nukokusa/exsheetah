@@ -110,7 +110,8 @@ used:
 - boolean
 - timestamp
 
-If the sheet value does not match the type, it will not be output.
+If the sheet value does not match the type, it will not be output. An empty
+cell is output as `""` for a `string` column, and omitted for any other type.
 
 ### Timestamps
 

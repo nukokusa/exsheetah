@@ -219,6 +219,47 @@ func TestSheet_IDColumn_SortsAscendingByTimestamp(t *testing.T) {
 	}
 }
 
+func TestSheet_EmptyCell_StringColumnIsEmptyString(t *testing.T) {
+	t.Parallel()
+
+	config := &exsheetah.SheetConfig{
+		Name: "item",
+		Columns: []*exsheetah.ColumnConfig{
+			{Name: "id", Type: exsheetah.ColumnTypeNumber},
+			{Name: "name", Type: exsheetah.ColumnTypeString},
+			{Name: "price", Type: exsheetah.ColumnTypeNumber},
+		},
+	}
+
+	grid := [][]any{
+		{"id", "name", "price"},
+		{float64(1), nil, nil},
+	}
+
+	sheet, err := exsheetah.NewSheet(config, grid, time.UTC)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := sheet.MarshalJSON()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rows []map[string]any
+	if err := json.Unmarshal(b, &rows); err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 1 {
+		t.Fatalf("expected 1 row, got %d: %v", len(rows), rows)
+	}
+	if got, ok := rows[0]["name"]; !ok || got != "" {
+		t.Errorf("name = %v (present: %v), want an empty string", got, ok)
+	}
+	if got, ok := rows[0]["price"]; ok {
+		t.Errorf("price = %v, want the key to be omitted for an empty number cell", got)
+	}
+}
+
 func TestSheet_TimestampColumn_CustomFormat(t *testing.T) {
 	t.Parallel()
 

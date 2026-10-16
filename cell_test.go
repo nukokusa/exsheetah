@@ -216,6 +216,20 @@ func TestBoolCell_Value(t *testing.T) {
 func TestNilCell_Value(t *testing.T) {
 	t.Parallel()
 
-	result := exsheetah.NilCell{}.Value(exsheetah.ColumnTypeString)
-	AssertDiff(t, nil, result)
+	tests := []struct {
+		typ      exsheetah.ColumnType
+		expected any
+	}{
+		{exsheetah.ColumnTypeString, ""},
+		{exsheetah.ColumnTypeNumber, nil},
+		{exsheetah.ColumnTypeBool, nil},
+		{exsheetah.ColumnTypeTimestamp, nil},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.typ), func(t *testing.T) {
+			t.Parallel()
+			result := exsheetah.NilCell{}.Value(tt.typ)
+			AssertDiff(t, tt.expected, result)
+		})
+	}
 }
