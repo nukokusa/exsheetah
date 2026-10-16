@@ -256,6 +256,55 @@ func TestSheet_TimestampColumn_CustomFormat(t *testing.T) {
 	}
 }
 
+func TestSheet_TimestampColumn_TrimHourZero(t *testing.T) {
+	t.Parallel()
+
+	config := &exsheetah.SheetConfig{
+		Name: "item",
+		Columns: []*exsheetah.ColumnConfig{
+			{Name: "id", Type: exsheetah.ColumnTypeNumber},
+			{Name: "released_at", Type: exsheetah.ColumnTypeTimestamp, Format: "2006-01-02 15:04:05", TrimHourZero: true},
+		},
+		IDColumn: "id",
+	}
+
+	grid := [][]any{
+		{"id", "released_at"},
+		{float64(1), "2024-01-02T01:23:45Z"},
+		{float64(2), "2024-01-02T00:05:00Z"},
+		{float64(3), "2024-01-02T13:23:45Z"},
+		{float64(4), "2024-01-02T10:00:00Z"},
+	}
+
+	sheet, err := exsheetah.NewSheet(config, grid, time.UTC)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := sheet.MarshalJSON()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rows []map[string]any
+	if err := json.Unmarshal(b, &rows); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		"2024-01-02 1:23:45",
+		"2024-01-02 0:05:00",
+		"2024-01-02 13:23:45",
+		"2024-01-02 10:00:00",
+	}
+	if len(rows) != len(want) {
+		t.Fatalf("expected %d rows, got %d: %v", len(want), len(rows), rows)
+	}
+	for i, w := range want {
+		if rows[i]["released_at"] != w {
+			t.Errorf("row %d: released_at = %v, want %s", i, rows[i]["released_at"], w)
+		}
+	}
+}
+
 func TestSheet_TimestampColumn_DefaultFormat(t *testing.T) {
 	t.Parallel()
 

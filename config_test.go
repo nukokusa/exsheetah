@@ -239,3 +239,54 @@ sheets:
 		}
 	})
 }
+
+func TestColumnConfig_TrimHourZero_Validate(t *testing.T) {
+	t.Parallel()
+
+	t.Run("trim_hour_zero with a format containing 15 is valid", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    columns:
+      - name: released_at
+        type: timestamp
+        format: "2006-01-02 15:04:05"
+        trim_hour_zero: true
+`)
+		if _, err := exsheetah.LoadConfig(path); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("trim_hour_zero without format is an error", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    columns:
+      - name: released_at
+        type: timestamp
+        trim_hour_zero: true
+`)
+		if _, err := exsheetah.LoadConfig(path); err == nil {
+			t.Fatal("expected an error for trim_hour_zero without format")
+		}
+	})
+
+	t.Run("trim_hour_zero with a format lacking 15 is an error", func(t *testing.T) {
+		t.Parallel()
+		path := writeConfig(t, `
+sheets:
+  - name: item
+    columns:
+      - name: released_at
+        type: timestamp
+        format: "2006-01-02"
+        trim_hour_zero: true
+`)
+		if _, err := exsheetah.LoadConfig(path); err == nil {
+			t.Fatal("expected an error for trim_hour_zero with a format lacking 15")
+		}
+	})
+}
