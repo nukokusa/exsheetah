@@ -2,6 +2,8 @@ package exsheetah
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/xuri/excelize/v2"
@@ -49,4 +51,20 @@ func TimeFromExcelSerial(serial float64, date1904 bool, loc *time.Location) (tim
 		return time.Time{}, err
 	}
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc), nil
+}
+
+// hourPlaceholder stands in for the "15" layout element while formatting
+// with trimHourZero. It contains no layout elements, so time.Format copies it
+// through verbatim.
+const hourPlaceholder = "\x00"
+
+// formatTimestamp renders t using the Go reference-time layout. When
+// trimHourZero is set, every 24-hour "15" element is rendered without a
+// leading zero (0-23) instead of Go's zero-padded 00-23.
+func formatTimestamp(t time.Time, layout string, trimHourZero bool) string {
+	if !trimHourZero {
+		return t.Format(layout)
+	}
+	layout = strings.ReplaceAll(layout, "15", hourPlaceholder)
+	return strings.ReplaceAll(t.Format(layout), hourPlaceholder, strconv.Itoa(t.Hour()))
 }

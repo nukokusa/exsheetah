@@ -125,7 +125,7 @@ func (s Sheet) marshal() []map[string]any {
 			}
 			if cc.Type == ColumnTypeTimestamp && cc.Format != "" {
 				if t, ok := value.(time.Time); ok {
-					value = t.Format(cc.Format)
+					value = formatTimestamp(t, cc.Format, cc.TrimHourZero)
 				}
 			}
 			rowMap[name] = value

@@ -97,6 +97,11 @@ sheets:
   `2006-01-02`, or `time.RFC3339`'s layout) used to render a `timestamp`
   column's value in the output. Only valid when `type` is `timestamp`;
   defaults to an RFC 3339 string when omitted.
+- `trim_hour_zero` optionally renders the 24-hour `15` element of `format`
+  without a leading zero (e.g. `2006-01-02 15:04:05` outputs
+  `2024-01-02 1:23:45` instead of `2024-01-02 01:23:45`), which Go layouts
+  cannot express on their own. Requires a `format` containing `15`.
+  Defaults to `false`.
 
 The `type` specifies the data type of the column. The following types can be
 used:

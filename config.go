@@ -178,6 +178,11 @@ type ColumnConfig struct {
 	// output. Only valid when Type is "timestamp"; when omitted, the
 	// value is output as a plain RFC 3339 timestamp.
 	Format string `yaml:"format,omitempty"`
+	// TrimHourZero renders the 24-hour "15" element of Format without a
+	// leading zero (e.g. "1:23:45" instead of "01:23:45"), which Go's
+	// reference-time layouts cannot express on their own. Only valid
+	// together with a Format that contains "15".
+	TrimHourZero bool `yaml:"trim_hour_zero,omitempty"`
 }
 
 func (cc *ColumnConfig) Validate() error {
@@ -192,6 +197,9 @@ func (cc *ColumnConfig) Validate() error {
 	}
 	if cc.Format != "" && cc.Type != ColumnTypeTimestamp {
 		return fmt.Errorf("format is only valid for timestamp columns: %s", cc.Name)
+	}
+	if cc.TrimHourZero && !strings.Contains(cc.Format, "15") {
+		return fmt.Errorf("trim_hour_zero requires a format containing \"15\": %s", cc.Name)
 	}
 
 	return nil
