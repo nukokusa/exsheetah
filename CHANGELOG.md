@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.0.4](https://github.com/nukokusa/exsheetah/compare/v0.0.3...v0.0.4) - 2026-10-16
+
+- add trim_hour_zero by @nukokusa in https://github.com/nukokusa/exsheetah/pull/6
+
 ## [v0.0.3](https://github.com/nukokusa/exsheetah/compare/v0.0.2...v0.0.3) - 2026-10-05
 
 - add disable_sort by @nukokusa in https://github.com/nukokusa/exsheetah/pull/4
